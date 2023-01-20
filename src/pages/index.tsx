@@ -1,5 +1,7 @@
+import { Heading } from "@anderson-silva-ui/react"
+
 export default function Home() {
   return (
-    <h1>Hello</h1>
+    <Heading as="h1" size="6xl">Hello</Heading>
   )
 }
