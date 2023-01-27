@@ -26,7 +26,7 @@ const registerFormSchema = z.object({
 
 type RegisterFormData = z.infer<typeof registerFormSchema>
 
-export function RegisterPage() {
+export default function Register() {
   const router = useRouter()
 
   const {
