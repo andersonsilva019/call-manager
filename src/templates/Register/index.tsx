@@ -1,3 +1,4 @@
+import { usersService } from '@/services/users'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Heading, MultiStep, Text, TextInput } from '@ignite-ui/react'
 import { useRouter } from 'next/router'
@@ -37,7 +38,16 @@ export function RegisterPage() {
   })
 
   async function handleRegister(data: RegisterFormData) {
-    console.log(data)
+    try {
+      const response = await usersService.create({
+        name: data.name,
+        username: data.username,
+      })
+
+      console.log(response)
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   useEffect(() => {
