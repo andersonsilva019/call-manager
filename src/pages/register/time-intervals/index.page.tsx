@@ -1,3 +1,4 @@
+import { getWeekDays } from '@/utils/get-week-days'
 import {
   Button,
   Checkbox,
@@ -7,6 +8,8 @@ import {
   TextInput,
 } from '@ignite-ui/react'
 import { ArrowRight } from 'phosphor-react'
+import { useMemo } from 'react'
+import { useFieldArray, useForm } from 'react-hook-form'
 import { Container, Header } from '../styles'
 
 import {
@@ -17,7 +20,78 @@ import {
   IntervalItem,
 } from './styles'
 
+enum WEEK_DAYS {
+  SUNDAY = 0,
+  MONDAY = 1,
+  TUESDAY = 2,
+  WEDNESDAY = 3,
+  THURSDAY = 4,
+  FRIDAY = 5,
+  SATURDAY = 6,
+}
+
 export default function TimeIntervals() {
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    defaultValues: {
+      intervals: [
+        {
+          weekDay: WEEK_DAYS.SUNDAY,
+          enabled: false,
+          startTime: '08:00',
+          endTime: '18:00',
+        },
+        {
+          weekDay: WEEK_DAYS.MONDAY,
+          enabled: true,
+          startTime: '08:00',
+          endTime: '18:00',
+        },
+        {
+          weekDay: WEEK_DAYS.TUESDAY,
+          enabled: true,
+          startTime: '08:00',
+          endTime: '18:00',
+        },
+        {
+          weekDay: WEEK_DAYS.WEDNESDAY,
+          enabled: true,
+          startTime: '08:00',
+          endTime: '18:00',
+        },
+        {
+          weekDay: WEEK_DAYS.THURSDAY,
+          enabled: true,
+          startTime: '08:00',
+          endTime: '18:00',
+        },
+        {
+          weekDay: WEEK_DAYS.FRIDAY,
+          enabled: true,
+          startTime: '08:00',
+          endTime: '18:00',
+        },
+        {
+          weekDay: WEEK_DAYS.SATURDAY,
+          enabled: false,
+          startTime: '08:00',
+          endTime: '18:00',
+        },
+      ],
+    },
+  })
+
+  const weekDays = useMemo(() => getWeekDays(), [])
+
+  const { fields } = useFieldArray({
+    name: 'intervals',
+    control,
+  })
+
   return (
     <Container>
       <Header>
@@ -32,27 +106,28 @@ export default function TimeIntervals() {
 
       <IntervalBox as="form">
         <IntervalContainer>
-          <IntervalItem>
-            <IntervalDay>
-              <Checkbox />
-              <Text>Segunda-feira</Text>
-            </IntervalDay>
-            <IntervalInputs>
-              <TextInput size="sm" type="time" step={60} />
-              <TextInput size="sm" type="time" step={60} />
-            </IntervalInputs>
-          </IntervalItem>
-
-          <IntervalItem>
-            <IntervalDay>
-              <Checkbox />
-              <Text>Terça-feira</Text>
-            </IntervalDay>
-            <IntervalInputs>
-              <TextInput size="sm" type="time" step={60} />
-              <TextInput size="sm" type="time" step={60} />
-            </IntervalInputs>
-          </IntervalItem>
+          {fields.map((field, index) => (
+            <IntervalItem key={field.id}>
+              <IntervalDay>
+                <Checkbox />
+                <Text>{weekDays[field.weekDay]}</Text>
+              </IntervalDay>
+              <IntervalInputs>
+                <TextInput
+                  size="sm"
+                  type="time"
+                  step={60}
+                  {...register(`intervals.${index}.startTime`)}
+                />
+                <TextInput
+                  size="sm"
+                  type="time"
+                  step={60}
+                  {...register(`intervals.${index}.endTime`)}
+                />
+              </IntervalInputs>
+            </IntervalItem>
+          ))}
         </IntervalContainer>
 
         <Button type="submit">
