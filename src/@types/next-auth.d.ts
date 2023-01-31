@@ -7,4 +7,8 @@ declare module 'next-auth' {
     email: string
     avatar_url: string
   }
+
+  interface Session {
+    user: User
+  }
 }
