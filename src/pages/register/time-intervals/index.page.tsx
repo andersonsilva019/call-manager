@@ -1,4 +1,5 @@
 import { getWeekDays } from '@/utils/get-week-days'
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Button,
   Checkbox,
@@ -10,9 +11,11 @@ import {
 import { ArrowRight } from 'phosphor-react'
 import { useMemo } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
+import { z } from 'zod'
 import { Container, Header } from '../styles'
 
 import {
+  FormError,
   IntervalBox,
   IntervalContainer,
   IntervalDay,
@@ -30,6 +33,25 @@ enum WEEK_DAYS {
   SATURDAY = 6,
 }
 
+const timeIntervalsFormSchema = z.object({
+  intervals: z
+    .array(
+      z.object({
+        weekDay: z.number().min(0).max(6),
+        enabled: z.boolean(),
+        startTime: z.string().regex(/^\d{2}:\d{2}$/),
+        endTime: z.string().regex(/^\d{2}:\d{2}$/),
+      }),
+    )
+    .length(7)
+    .transform((intervals) => intervals.filter((interval) => interval.enabled))
+    .refine((intervals) => intervals.length > 0, {
+      message: 'Selecione pelo menos um dia da semana',
+    }),
+})
+
+type TimeIntervalsFormData = z.infer<typeof timeIntervalsFormSchema>
+
 export default function TimeIntervals() {
   const {
     register,
@@ -37,7 +59,8 @@ export default function TimeIntervals() {
     control,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm({
+  } = useForm<TimeIntervalsFormData>({
+    resolver: zodResolver(timeIntervalsFormSchema),
     defaultValues: {
       intervals: [
         {
@@ -95,6 +118,10 @@ export default function TimeIntervals() {
     control,
   })
 
+  async function handlerSetTimeIntervals(data: TimeIntervalsFormData) {
+    console.log(data)
+  }
+
   return (
     <Container>
       <Header>
@@ -107,7 +134,7 @@ export default function TimeIntervals() {
         <MultiStep size={4} currentStep={3} />
       </Header>
 
-      <IntervalBox as="form">
+      <IntervalBox as="form" onSubmit={handleSubmit(handlerSetTimeIntervals)}>
         <IntervalContainer>
           {fields.map((field, index) => (
             <IntervalItem key={field.id}>
@@ -146,7 +173,11 @@ export default function TimeIntervals() {
           ))}
         </IntervalContainer>
 
-        <Button type="submit">
+        {errors.intervals && (
+          <FormError size="sm">{errors.intervals.message}</FormError>
+        )}
+
+        <Button type="submit" disabled={isSubmitting}>
           Próximo passo
           <ArrowRight />
         </Button>
