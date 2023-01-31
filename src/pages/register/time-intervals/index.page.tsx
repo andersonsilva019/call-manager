@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+import { http } from '@/lib/axios'
 import { convertTimeStringToMinutes } from '@/utils/converte-string-time-to-minutes'
 import { getWeekDays } from '@/utils/get-week-days'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -141,9 +143,11 @@ export default function TimeIntervals() {
   })
 
   async function handlerSetTimeIntervals(data: any) {
-    const formData = data as TimeIntervalsFormOutput
+    const { intervals } = data as TimeIntervalsFormOutput
 
-    console.log(formData)
+    await http.post('/users/time-intervals', {
+      intervals,
+    })
   }
 
   return (
