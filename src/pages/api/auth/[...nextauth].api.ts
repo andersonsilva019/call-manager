@@ -23,7 +23,7 @@ export function buildNextAuthOptions(
           return {
             id: profile.sub,
             name: profile.name,
-            username: null,
+            username: '',
             email: profile.email,
             avatar_url: profile.picture,
           }
