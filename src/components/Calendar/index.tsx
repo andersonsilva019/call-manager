@@ -1,4 +1,7 @@
+import { http } from '@/lib/axios'
+import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
+import { useRouter } from 'next/router'
 import { CaretLeft, CaretRight } from 'phosphor-react'
 import { useMemo, useState } from 'react'
 import { getWeekDays } from '../../utils/get-week-days'
@@ -26,15 +29,36 @@ interface CalendarProps {
   onDateSelect: (date: Date) => void
 }
 
+interface BlockedDates {
+  blockedWeekDays: number[]
+}
+
 export function Calendar({ selectedDate, onDateSelect }: CalendarProps) {
   const [currentDate, setCurrentDate] = useState(() => {
     return dayjs().set('date', 1)
   })
+  const router = useRouter()
 
   const shortWeekDays = getWeekDays({ short: true })
 
   const currentMonth = currentDate.format('MMMM')
   const currentYear = currentDate.format('YYYY')
+
+  const username = String(router.query.username)
+
+  const { data: blockedDates } = useQuery<BlockedDates>(
+    ['blocked-dates', currentDate.get('year'), currentDate.get('month')],
+    async () => {
+      const response = await http.get(`/users/${username}/blocked-dates`, {
+        params: {
+          year: currentDate.get('year'),
+          month: currentDate.get('month'),
+        },
+      })
+
+      return response.data
+    },
+  )
 
   function handlePreviousMonth() {
     setCurrentDate((date) => date.subtract(1, 'month'))
@@ -78,7 +102,14 @@ export function Calendar({ selectedDate, onDateSelect }: CalendarProps) {
         return { date, disabled: true }
       }),
       ...daysInMonthArray.map((date) => {
-        return { date, disabled: date.endOf('day').isBefore(new Date()) }
+        return {
+          date,
+          disabled:
+            date.endOf('day').isBefore(new Date()) ||
+            (blockedDates?.blockedWeekDays?.includes(
+              date.get('day'),
+            ) as boolean),
+        }
       }),
       ...nextMonthFillArray.map((date) => {
         return { date, disabled: true }
@@ -102,7 +133,7 @@ export function Calendar({ selectedDate, onDateSelect }: CalendarProps) {
     )
 
     return calendarWeeks
-  }, [currentDate])
+  }, [currentDate, blockedDates])
 
   return (
     <CalendarContainer>
